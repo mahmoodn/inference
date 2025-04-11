@@ -1,8 +1,13 @@
 Download model:
 ```
+wget https://github.com/git-lfs/git-lfs/releases/download/v3.4.1/git-lfs-linux-amd64-v3.4.1.tar.gz
+tar -xvzf git-lfs-linux-amd64-v3.4.1.tar.gz
+export PATH=~/git-lfs-3.4.1:$PATH
 cd $SCRATCH
 export CHECKPOINT_PATH=$SCRATCH/Llama-2-70b-chat-hf
-git clone https://USER:TOKEN@huggingface.co/meta-llama/Llama-2-70b-chat-hf ${CHECKPOINT_PATH}
+git lfs install
+git clone https://huggingface.co/meta-llama/Llama-2-70b-chat-hf ${CHECKPOINT_PATH}
+
 ```
 
 Download Dataset:
@@ -22,24 +27,28 @@ Create conda environment, install Pytorch, build Loadgen and run benchmark:
 # create an env
 conda create --name pt24-cuda121
 conda activate pt24-cuda121
+conda install pandas=2.1.4 numpy=1.23.5
+conda install sympy
 
 # install pytorch
-conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+pip3 install torch torchvision torchaudio
 
 # build loadgen
 cd ~/inference/loadgen
 conda install conda-build
 conda install absl-py
-conda install numpy
 CFLAGS="-std=c++14 -O3" python -m pip install --user .
 
 # install packages for llama run
 cd ~/inference/language/llama2-70b
+
 conda install conda-forge::transformers
 conda install conda-forge::sentencepiece
 conda install anaconda::protobuf
 conda install -c conda-forge accelerate
-python3 -u main.py --scenario Offline --model-path ${CHECKPOINT_PATH} --mlperf-conf mlperf.conf \
+pip install transformers -U
+pip install accelerate
+python3 -u main.py --scenario Offline --model-path ${CHECKPOINT_PATH}  \
   --user-conf user.conf --total-sample-count 24576 --dataset-path ${DATASET_PATH} \
   --output-log-dir offline-logs --dtype float32 --device cuda:0 2>&1 | tee offline_performance_log.log
 ```
