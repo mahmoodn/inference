@@ -1,7 +1,7 @@
 # MLPerf Inference Benchmarks
 
 ## Overview
-The currently valid [MLPerf Inference Benchmarks](index_gh.md) as of MLPerf inference v4.0 round are listed below, categorized by tasks. Under each model you can find its details like the dataset used, reference accuracy, server latency constraints etc.
+The currently valid [MLPerf Inference Benchmarks](index_gh.md) as of MLPerf inference v5.0 round are listed below, categorized by tasks. Under each model you can find its details like the dataset used, reference accuracy, server latency constraints etc.
 
 ---
 
@@ -80,7 +80,7 @@ The currently valid [MLPerf Inference Benchmarks](index_gh.md) as of MLPerf infe
 - **Server Scenario Latency Constraint**: 130ms
 - **Equal Issue mode**: False
 - **High accuracy variant**: yes
-- **Submission Category**: Datacenter, Edge
+- **Submission Category**: Edge
 
 #### [LLAMA2-70B](benchmarks/language/llama2-70b.md)
 - **Dataset**: OpenORCA (GPT-4 split, max_seq_len=1024)
@@ -157,11 +157,39 @@ The currently valid [MLPerf Inference Benchmarks](index_gh.md) as of MLPerf infe
 - **High accuracy variant**: Yes
 - **Submission Category**: Datacenter
 
+## Graph Neural Networks
+### [R-GAT](benchmarks/graph/rgat.md)
+- **Dataset**: Illinois Graph Benchmark Heterogeneous validation dataset
+    - **Dataset Size**: 788,379
+    - **QSL Size**: 788,379
+- **Number of Parameters**: 
+- **Reference Model Accuracy**: ACC = 72.86%
+- **Server Scenario Latency Constraint**: N/A
+- **Equal Issue mode**: True
+- **High accuracy variant**: No
+- **Submission Category**: Datacenter
+---
+
+## Automotive
+
+### 3D Object Detection
+#### [PointPainting](benchmarks/automotive/3d_object_detection/pointpainting.md)
+- **Dataset**: Waymo
+    - **Dataset Size**: 39,986
+    - **QSL Size**: 1,024
+- **Number of Parameters**: 44 million
+- **FLOPs**: 3 trillion
+- **Reference Model Accuracy (fp32)**:  mAP: 54.25%
+- **Required Accuracy (Closed Division)**:
+    - mAP: 54.25%
+- **Equal Issue mode**: False
+- **High accuracy variant**: Yes
+- **Submission Category**: Edge
 ---
 
 ## Submission Categories
-- **Datacenter Category**: All the current inference benchmarks are applicable to the datacenter category.
-- **Edge Category**: All benchmarks except DLRMv2, LLAMA2-70B, and Mixtral-8x7B are applicable to the edge category.
+- **Datacenter Category**: All benchmarks except bert are applicable to the datacenter category for inference v5.0.
+- **Edge Category**: All benchmarks except DLRMv2, LLAMA2-70B, Mixtral-8x7B and R-GAT are applicable to the edge category for v5.0.
 
 ## High Accuracy Variants
 - **Benchmarks**: `bert`, `llama2-70b`, `gpt-j`,  `dlrm_v2`, and `3d-unet` have a normal accuracy variant as well as a high accuracy variant.

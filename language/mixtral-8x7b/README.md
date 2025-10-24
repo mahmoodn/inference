@@ -6,17 +6,16 @@
 + Streamer for communicating with loadgen has quite some overhead. This is only meant to provide functional implementation
 + For custom/optimized implementations of this benchmark it is important to include the :
         - For server scenario, it is necessary to call `lg.FirstTokenComplete(response)` for each query. This way the first token will be reported and it's latency will be measured.
-        - For all scenarios, when calling `lg.QuerySamplesComplete(response)`, it is necessary that each of the elements in response is a `lg.QuerySampleResponse` that contains the number of tokens (can be create this way: `lg.QuerySampleResponse(qitem.id, bi[0], bi[1], n_tokens)`). The number of tokens reported should match with the number of tokens on your answer and this will be checked in [TEST06](../../compliance/nvidia/TEST06/)
+        - For all scenarios, when calling `lg.QuerySamplesComplete(response)`, it is necessary that each of the elements in response is a `lg.QuerySampleResponse` that contains the number of tokens (can be create this way: `lg.QuerySampleResponse(qitem.id, bi[0], bi[1], n_tokens)`). The number of tokens reported should match with the number of tokens on your answer and this will be checked in [TEST06](../../compliance/TEST06/)
 
 
-Please see the [new docs site](https://docs.mlcommons.org/inference/benchmarks/language/mixtral-8x7b) for an automated way to run this benchmark across different available implementations and do an end-to-end submission with or without docker.
- 
+## Automated command to run the benchmark via MLCFlow
+
+Please see the [new docs site](https://docs.mlcommons.org/inference/benchmarks/language/mixtral-8x7b/) for an automated way to run this benchmark across different available implementations and do an end-to-end submission with or without docker.
+
+You can also do `pip install mlc-scripts` and then use `mlcr` commands for downloading the model and datasets using the commands given in the later sections.
+
 ## Prepare environment
-
-Copy the mlperf.conf file to this folder.
-```
-cp ../../mlperf.conf .
-```
 
 For a CPU-only run:
 
@@ -71,6 +70,12 @@ CPU-only setup, as well as any GPU versions for applicable libraries like PyTorc
 
 **Important Note:** Files and configurations of the model have changed, and might change in the future. If you are going to get the model from Hugging Face or any external source, use a version of the model that exactly matches the one in this [commit](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1/commit/a60832cb6c88d5cb6e507680d0e9996fbad77050). We strongly recommend to get the model following the steps in the next section:
 
+### Download model through MLCFlow Automation
+
+```
+mlcr get,ml-model,mixtral,_r2-downloader,_mlc --outdirname=<path_to_download> -j
+```
+
 ### Get Checkpoint
 
 #### Using Rclone
@@ -92,6 +97,22 @@ rclone copy mlc-inference:mlcommons-inference-wg-public/mixtral_8x7b/mixtral-8x7
 
 ## Get Dataset
 
+### Download Preprocessed dataset through MLCFlow Automation
+
+**Validation**
+
+```
+mlcr get,dataset-mixtral,openorca-mbxp-gsm8k-combined,_r2-downloader,_validation --outdirname=<path to download> -j
+```
+
+**Calibration**
+
+```
+mlcr get,dataset-mixtral,openorca-mbxp-gsm8k-combined,_r2-downloader,_calibration --outdirname=<path to download> -j
+```
+
+- Adding `_wget` tag to the run command will change the download tool from `rclone` to `wget`.
+
 ### Preprocessed
 
 #### Using Rclone
@@ -104,13 +125,15 @@ sudo -v ; curl https://rclone.org/install.sh | sudo bash
 ```
 Once Rclone is installed, cd into the folder where you want to place the dataset and run:
 ```bash
-rclone copyurl https://inference.mlcommons-storage.org/mixtral_8x7b%2F2024.06.06_mixtral_15k_v4.pkl ./ -a -P
+rclone copyurl https://inference.mlcommons-storage.org/mixtral_8x7b/09292024_mixtral_15k_mintoken2_v1.pkl ./ -a -P
 ```
 #### Using wget
 
 Alternatively, you can simply cd into the folder where you want to place the dataset and run
+
+
 ```bash
-wget https://inference.mlcommons-storage.org/mixtral_8x7b%2F2024.06.06_mixtral_15k_v4.pkl
+wget https://inference.mlcommons-storage.org/mixtral_8x7b/09292024_mixtral_15k_mintoken2_v1.pkl
 ```
 
 ### Calibration dataset
@@ -134,7 +157,6 @@ wget https://inference.mlcommons-storage.org/mixtral_8x7b%2F2024.06.06_mixtral_1
 ```
 python -u main.py --scenario Offline \
                 --model-path ${CHECKPOINT_PATH} \
-                --mlperf-conf mlperf.conf \
                 --user-conf user.conf \
                 --total-sample-count 15000 \
                 --device cpu \
@@ -147,7 +169,6 @@ For a GPU-based run:
 ```
 python3 -u main.py --scenario Offline \
         --model-path ${CHECKPOINT_PATH} \
-        --mlperf-conf mlperf.conf \
         --user-conf user.conf \
         --total-sample-count 15000 \
         --dataset-path ${DATASET_PATH} \
@@ -160,7 +181,6 @@ python3 -u main.py --scenario Offline \
 ```
 python -u main.py --scenario Server \
                 --model-path ${CHECKPOINT_PATH} \
-                --mlperf-conf mlperf.conf \
                 --user-conf user.conf \
                 --total-sample-count 15000 \
                 --device cpu \
@@ -182,7 +202,6 @@ mkdir -p "run_outputs"  # The script will dump all the outputs to 'run_outputs'.
 python -u main.py --scenario Offline \
                 --model-path ${CHECKPOINT_PATH} \
                 --accuracy \
-                --mlperf-conf mlperf.conf \
                 --user-conf user.conf \
                 --total-sample-count 15000 \
                 --dataset-path ${DATASET_PATH} \
@@ -219,7 +238,6 @@ OUTPUT_LOG_DIR=server-accuracy-logs
 python -u main.py --scenario Server \
                 --model-path ${CHECKPOINT_PATH} \
                 --accuracy \
-                --mlperf-conf mlperf.conf \
                 --user-conf user.conf \
                 --total-sample-count 15000 \
                 --dataset-path ${DATASET_PATH} \
@@ -236,17 +254,26 @@ fi
 
 The ServerSUT was not tested for GPU runs.
 
+## Accuracy Evaluation
+
+### Evaluate the accuracy through MLCFlow Automation
+```bash
+mlcr process,mlperf,accuracy,_openorca-gsm8k-mbxp-combined --result_dir=<Path to directory where files are generated after the benchmark run>
+```
+
+Please click [here](https://github.com/mlcommons/inference/blob/master/language/mixtral-8x7b/evaluate-accuracy.py) to view the Python script for evaluating accuracy for the Waymo dataset.
+
 ### Evaluation
 Recreating the enviroment for evaluating the quality metrics can be quite tedious. Therefore we provide a dockerfile and recommend using docker for this task.
 1. Build the evaluation container
 ```bash
 docker build . -f Dockerfile.eval -t evaluation
 ```
-2. Run the docker in interactive mode and with 
+2. Run the docker in interactive mode and with
 ```bash
-sudo docker run -it -v $(pwd):/eval -t evaluation
+docker run -it --rm --net=host --runtime=nvidia --ipc=host -v $PWD:$PWD -w $PWD evaluation
 ```
-3. 
+3.
 ```bash
 cd eval
 python -u evaluate-accuracy.py --checkpoint-path [path_to_model_checkpoint] \
@@ -258,20 +285,26 @@ python -u evaluate-accuracy.py --checkpoint-path [path_to_model_checkpoint] \
 
 ## Accuracy Target
 
+**WARNING:** The full accuracy target was only verified with the standalone script. The reference implementation matches in a subset of the dataset, but hasn't been fully confirm.
+
 Reference scores:
 Open Orca:
 ```json
-{'rouge1': 45.4911, 'rouge2': 23.2829, 'rougeL': 30.3615}
+{'rouge1': 45.5989, 'rouge2': 23.3526, 'rougeL': 30.4608}
 ```
 GSM8K:
 ```json
-{'gsm8k': 73.78}
+{'gsm8k': 73.66}
 ```
 MBXP:
 ```json
-{'mbxp': 60.12}
+{'mbxp': 60.16}
 ```
-For official submissions, 99% of each reference score is enforced. Additionally, 90%-110% of the generated tokens_per_samples:
+For official submissions, 99% of each reference score is enforced. Additionally, 90%-110% of the generated tokens_per_samples (counting all the non-EOS tokens):
 ```json
-{'tokens_per_sample': 145.9}
+{'tokens_per_sample': 144.84}
 ```
+
+## Automated command for submission generation via MLCFlow
+
+Please see the [new docs site](https://docs.mlcommons.org/inference/submission/) for an automated way to generate submission through MLCFlow. 
