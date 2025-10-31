@@ -1,0 +1,27 @@
+#!/bin/sh
+#SBATCH --job-name="llama3-8b"
+#SBATCH --output offline.log
+#SBATCH --partition=gpu-a100
+#SBATCH --account=research-eemcs-qce
+#SBATCH --time=0-1:00:00
+#SBATCH --ntasks=1
+#SBATCH --gpus-per-task=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=6GB
+
+date
+hostname
+
+module load miniconda3/4.12.0
+conda activate pt29-cuda128
+export ROOT=/scratch/mnaderantahan/inference
+export LLAMA_FOLDER=$ROOT/language/llama3.1-8b
+export LOADGEN_FOLDER=$ROOT/loadgen
+export DATASET_PATH=$LLAMA_FOLDER/dataset/cnn_eval.json
+export CHECKPOINT_PATH=$LLAMA_FOLDER/Llama-3.1-8B-Instruct
+export GPU_COUNT=1
+cd $LLAMA_FOLDER
+
+python -u main.py --scenario Offline --model-path $CHECKPOINT_PATH --batch-size 1 --dtype bfloat16 --user-conf user.conf --total-sample-count 13368 --dataset-path $DATASET_PATH --output-log-dir output --tensor-parallel-size $GPU_COUNT --vllm
+
+date
