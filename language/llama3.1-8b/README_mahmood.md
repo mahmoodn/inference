@@ -35,4 +35,6 @@ python -u main.py --scenario Offline --model-path ${CHECKPOINT_PATH} --batch-siz
 inteactive job command:
 ```
 srun --mpi=pmix --job-name="int_gpu_job" --partition=gpu-a100-small --time=01:00:00 --ntasks=1 --cpus-per-task=2 --gpus-per-task=1 --mem-per-cpu=5G --account=research-eemcs-qce --pty /bin/bash -il
+
+/scratch/mnaderantahan/nsight-systems-2025.5.1/bin/nsys profile --output nsys.out --trace=cuda,cublas,cudnn,osrt,nvtx --sample cpu --cpuctxsw process-tree python -u main.py --scenario Offline --model-path $CHECKPOINT_PATH --batch-size $BATCH_SIZE --dtype bfloat16 --user-conf user.conf --total-sample-count 1 --dataset-path $DATASET_PATH --output-log-dir output --tensor-parallel-size $GPU_COUNT --vllm
 ```
